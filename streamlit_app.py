@@ -46,6 +46,7 @@ def main():
         except Exception as e:
             st.error(f"CosmosDB登録エラー: {e}")
             return
+        st.success("送信完了")
 
 
 if __name__ == "__main__":
