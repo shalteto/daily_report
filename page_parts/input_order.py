@@ -21,7 +21,7 @@ def count_order(year):
 
 
 def input_order():
-    st.title("受注情報入力")
+    st.title("受注情報入力🦋")
     with st.form(key="order_form"):
         customer_name = st.text_input("発注元")
         order_name = st.text_input("事業名")

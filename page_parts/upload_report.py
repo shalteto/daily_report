@@ -190,7 +190,7 @@ def other_form(task_type):
 
 
 def upload_report():
-    st.title("作業報告")
+    st.title("作業報告🐗")
     task_type = st.selectbox(
         "作業種類を選択", ["見回り", "罠捕獲", "銃捕獲", "調査", "他"]
     )

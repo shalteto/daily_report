@@ -6,7 +6,7 @@ from tools.trap_id import count_trap
 st.set_page_config(page_title="作業報告", layout="wide", page_icon="🐗")
 
 def trap_set():
-    st.title("罠設置🐗")
+    st.title("罠設置🦌")
     with st.form(key="trap_set_form"):
         users = st.multiselect("従事者", st.session_state.users)
         st.write(

@@ -77,7 +77,7 @@ def call_trap_date():
     return res
 
 
-def trap_map():
+def trap_map(width=400, height=300):
     trap_data = call_trap_date()
     # trap_data = sample_trap_data()
     print("trap_data==>")
@@ -113,6 +113,8 @@ def trap_map():
         chart,
         selection_mode="multi-object",
         on_select="rerun",
+        width=width,
+        height=height,
     )
 
     # event.selection["objects"]
