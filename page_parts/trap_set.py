@@ -5,8 +5,7 @@ from tools.trap_id import count_trap
 
 st.set_page_config(page_title="作業報告", layout="wide", page_icon="🐗")
 
-
-def main():
+def trap_set():
     st.title("罠設置🐗")
     with st.form(key="trap_set_form"):
         users = st.multiselect("従事者", st.session_state.users)
@@ -63,7 +62,3 @@ def main():
                 st.error("写真をアップロードしてください。")
             if not trap_name:
                 st.error("罠の通称を入力してください。")
-
-
-if __name__ == "__main__":
-    main()

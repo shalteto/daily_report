@@ -2,7 +2,7 @@ import streamlit as st
 import time
 from azure_.cosmosdb import upsert_mimawari
 from azure_.onedrive_file_upload import upload_blob_to_onedrive
-from azure_.gps import get_gps_coordinates, get_full_address
+from tools.gps import get_gps_coordinates, get_full_address
 
 def daily_report():
     task_type = st.selectbox("作業種類を選択", ["見回", "捕獲"])
