@@ -11,6 +11,7 @@ CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 TARGET_USER = os.getenv("TARGET_USER")  # suzuki_shoichiro@atsumi-sat.com
 
+
 def get_access_token():
     token_url = f"https://login.microsoftonline.com/{TENANT_ID}/oauth2/v2.0/token"
     data = {
@@ -21,6 +22,7 @@ def get_access_token():
     }
     response = requests.post(token_url, data=data)
     return response.json().get("access_token")
+
 
 def upload_to_onedrive(file_path, filename):
     access_token = get_access_token()
@@ -36,7 +38,12 @@ def upload_to_onedrive(file_path, filename):
     with open(file_path, "rb") as file:
         response = requests.put(upload_url, headers=headers, data=file)
 
-    return "✅ アップロード成功" if response.status_code in [200, 201] else f"❌ アップロード失敗: {response.text}"
+    return (
+        "✅ アップロード成功"
+        if response.status_code in [200, 201]
+        else f"❌ アップロード失敗: {response.text}"
+    )
+
 
 def upload_blob_to_onedrive(uploaded_file, filename):
     access_token = get_access_token()
@@ -51,4 +58,8 @@ def upload_blob_to_onedrive(uploaded_file, filename):
     print(uploaded_file.name)
     response = requests.put(upload_url, headers=headers, data=uploaded_file)
 
-    return "✅ アップロード成功" if response.status_code in [200, 201] else f"❌ アップロード失敗: {response.text}"
+    return (
+        "✅ アップロード成功"
+        if response.status_code in [200, 201]
+        else f"❌ アップロード失敗: {response.text}"
+    )

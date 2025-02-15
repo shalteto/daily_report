@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 
 
 def common_form_elements():
-    users = st.multiselect("ユーザーを選択", st.session_state.users)
+    users = st.multiselect("ユーザーを選択", st.session_state.users_filtered_by_type)
     task_date = st.date_input("作業日を選択")
     uploaded_files = st.file_uploader(
         "写真をアップロード", accept_multiple_files=True, type=["jpg", "png"]
@@ -39,7 +39,7 @@ def submit_data(data):
 
 
 def mimawari_form(task_type):
-    trap_map()
+    trap_map(mode="稼働中")
     with st.form(key="mimawari_form"):
         users, task_date, uploaded_files, start_time, end_time = common_form_elements()
         if "map" not in st.session_state.selected_objects:
@@ -69,7 +69,7 @@ def mimawari_form(task_type):
 
 
 def trap_hokaku_form(task_type):
-    trap_map()
+    trap_map(mode="稼働中")
     with st.form(key="trap_hokaku_form"):
         st.write("入力は１頭ずつ行って下さい")
         users, task_date, uploaded_files, start_time, end_time = common_form_elements()
@@ -142,6 +142,8 @@ def research_form(task_type):
         submit_button = st.form_submit_button(label="送信")
 
     if submit_button:
+        st.write("送信ボタンを押した")
+        print("送信ボタンを押した")
         if uploaded_files and users:
             file_names = file_upload(uploaded_files, task_type)
             data = {
@@ -196,13 +198,28 @@ def upload_report():
     )
     if task_type == "見回り":
         mimawari_form(task_type)
+        st.session_state.users_filtered_by_type = st.session_state.users.query(
+            "trap == True"
+        )["user_name"].tolist()
     elif task_type == "罠捕獲":
         trap_hokaku_form(task_type)
+        st.session_state.users_filtered_by_type = st.session_state.users.query(
+            "trap == True"
+        )["user_name"].tolist()
     elif task_type == "銃捕獲":
         gun_hokaku_form(task_type)
+        st.session_state.users_filtered_by_type = st.session_state.users.query(
+            "gun == True"
+        )["user_name"].tolist()
     elif task_type == "調査":
         research_form(task_type)
+        st.session_state.users_filtered_by_type = st.session_state.users.query(
+            "user_name == user_name"
+        )["user_name"].tolist()
     elif task_type == "他":
         other_form(task_type)
+        st.session_state.users_filtered_by_type = st.session_state.users.query(
+            "user_name == user_name"
+        )["user_name"].tolist()
     else:
         st.write("作業を選択してください")

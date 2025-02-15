@@ -1,24 +1,7 @@
 import streamlit as st
 import pydeck as pdk
 from azure_.cosmosdb import search_container_by_query
-
-date = {
-    "id": "Trap-015",
-    "users": ["宮田"],
-    "task_type": "罠設置",
-    "task_date": "2025-02-13",
-    "trap_type": "くくり",
-    "trap_name": "てすと",
-    "latitude": 34.706623,
-    "longitude": 137.355536,
-    "number": 2,
-    "status": "稼働中",
-    "_rid": "mksDALkCVTwvAAAAAAAAAA==",
-    "_self": "dbs/mksDAA==/colls/mksDALkCVTw=/docs/mksDALkCVTwvAAAAAAAAAA==/",
-    "_etag": '"660041cc-0000-0800-0000-67adaff40000"',
-    "_attachments": "attachments/",
-    "_ts": 1739436020,
-}
+import pandas as pd
 
 
 def sample_trap_data():
@@ -41,7 +24,7 @@ def sample_trap_data():
             "latitude": 34.610929,
             "longitude": 137.113483,
             "trap_name": "アキモトさんの檻",
-            "status": "稼働中",
+            "status": "停止中",
             "id": "Trap-003",
         },
         {
@@ -55,18 +38,19 @@ def sample_trap_data():
             "latitude": 34.597054,
             "longitude": 137.126528,
             "trap_name": "花の村の奥",
-            "status": "稼働中",
+            "status": "撤去済み",
             "id": "Trap-005",
         },
     ]
     return trap_data
 
 
+database_name = "sat-db"
+container_name = "traps"
+
+
 def call_trap_date():
-    # 罠データを取得
-    database_name = "sat-db"
-    container_name = "traps"
-    query = "SELECT c.latitude, c.longitude, c.trap_name, c.id  FROM c WHERE STARTSWITH(c.id, 'Trap-')"
+    query = "SELECT c.id, c.users, c.task_date, c.trap_type, c.trap_name, c.latitude, c.longitude, c.number, c.status FROM c"
     parameters = []
     res = search_container_by_query(
         database_name,
@@ -77,18 +61,37 @@ def call_trap_date():
     return res
 
 
-def trap_map(width=400, height=300):
-    trap_data = call_trap_date()
+def trap_map(width=400, height=300, mode="稼働中"):
+    trap_data = st.session_state.trap_data
     # trap_data = sample_trap_data()
-    print("trap_data==>")
-    print(trap_data)
-    # レイヤーを設定
+
+    if not trap_data:
+        st.warning("トラップデータがありません。")
+        return
+
+    # データをデータフレームに変換
+    trap_data = pd.DataFrame(trap_data)
+
+    # モードに基づいてデータをフィルタリング
+    if mode != "すべて":
+        trap_data = trap_data[trap_data["status"] == mode]
+
+    # カラーの設定（事前にデータフレームへカラム追加）
+    trap_data["color"] = [[0, 255, 0]] * len(trap_data)  # デフォルトカラー（緑色）
+    for idx, row in trap_data.iterrows():
+        if row["status"] == "稼働中":
+            trap_data.at[idx, "color"] = [0, 0, 255, 160]  # 青色
+        elif row["status"] == "停止中":
+            trap_data.at[idx, "color"] = [255, 255, 0, 160]  # 黄色
+        elif row["status"] == "撤去済み":
+            trap_data.at[idx, "color"] = [225, 0, 0, 160]  # 赤色
+
     layer = pdk.Layer(
         "ScatterplotLayer",
         data=trap_data,
         get_position="[longitude, latitude]",
         get_radius=50,
-        get_color="[200, 30, 0, 160]",
+        get_color="color",
         pickable=True,
         auto_highlight=True,
         id="map",
@@ -109,6 +112,7 @@ def trap_map(width=400, height=300):
         tooltip={"text": "{trap_name}"},
     )
 
+    st.caption("🔵稼働中  🟡停止中  🔴撤去済み")
     event = st.pydeck_chart(
         chart,
         selection_mode="multi-object",
@@ -116,14 +120,9 @@ def trap_map(width=400, height=300):
         width=width,
         height=height,
     )
-
-    # event.selection["objects"]
     st.session_state.selected_objects = event.selection["objects"]
     print("st.session_state.selected_objects==>")
     print(st.session_state.selected_objects)
     if st.session_state.selected_objects:
         for p in st.session_state.selected_objects["map"]:
             st.write(p["trap_name"])
-
-    # 地図の表示
-    # st.write("地図をクリックして座標を取得:")

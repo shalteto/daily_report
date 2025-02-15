@@ -24,15 +24,23 @@ def create_cosmos_client(
 
 
 # データをCosmos DBに登録する
-def upsert_to_container(database_name: str, container_name: str, data: dict):
+def upsert_to_container(database_name: str, container_name: str, data):
     _, _, container = create_cosmos_client(
         COSMOSDB_CORE_ENDPOINT, COSMOSDB_CORE_API_KEY, database_name, container_name
     )
-    # データにIDが含まれていない場合は追加
+
+    # データがリストの場合は複数レコードを登録
+    if isinstance(data, list):
+        for record in data:
+            if "id" not in record:
+                record["id"] = str(uuid.uuid4())
+            container.upsert_item(body=record)
+        return f"{len(data)} 件のデータを登録しました"
+
+    # 単一レコードの場合
     if "id" not in data:
         data["id"] = str(uuid.uuid4())
-    upsert_item = container.upsert_item(body=data)
-    return upsert_item
+    return container.upsert_item(body=data)
 
 
 def search_container_by_query(

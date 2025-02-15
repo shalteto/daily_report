@@ -6,6 +6,7 @@ from azure_.cosmosdb import search_container_by_query
 database_name = "sat-db"
 container_name = "orders"
 
+
 def count_order(year):
     # 本年のオーダー数をカウントする
     query = "SELECT VALUE COUNT(1) FROM c WHERE c.year = @year"
