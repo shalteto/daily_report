@@ -41,6 +41,7 @@ def trap_set():
             gps_coordinates = get_gps_coordinates(uploaded_file.read())
             if gps_coordinates:
                 gps_data = True
+            uploaded_file.seek(0)
 
         if uploaded_files and users and trap_name and gps_data:
             file_names = file_upload(uploaded_files, task_type)
@@ -78,7 +79,7 @@ def trap_set():
                 "file_names": file_names,
             }
             submit_data(data)
-            st.success("送信完了")
+            # st.success("送信完了")
             st.session_state.trap_data.append(
                 {
                     "id": trap_id,
