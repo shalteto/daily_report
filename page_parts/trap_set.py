@@ -4,6 +4,7 @@ from azure_.cosmosdb import upsert_to_container
 from tools.file_upload import file_upload
 from tools.trap_id import count_trap
 from page_parts.trap_map import trap_map
+from tools.gps import get_gps_coordinates
 
 
 database_name = "sat-db"
@@ -34,7 +35,13 @@ def trap_set():
 
     if submit_button:
         # uploaded_files が1つ以上で、users が1つ以上選択されている場合のみ処理を実行
-        if uploaded_files and users and trap_name:
+        gps_data = False
+        for uploaded_file in uploaded_files:
+            gps_coordinates = get_gps_coordinates(uploaded_file.read())
+            if gps_coordinates:
+                gps_data = True
+
+        if uploaded_files and users and trap_name and gps_data:
             file_names = file_upload(uploaded_files, task_type)
             first_file = file_names[0]
             lat, lon = first_file["latitude"], first_file["longitude"]
@@ -78,6 +85,10 @@ def trap_set():
                 st.error("写真をアップロードしてください。")
             if not trap_name:
                 st.error("罠の通称を入力してください。")
+            if not gps_data:
+                st.error(
+                    "どの写真ファイルにもGPSデータがありません。スマホのカメラ設定でGPS情報を含める設定をしてください。"
+                )
 
 
 def change_trap_status(map_data, status):
