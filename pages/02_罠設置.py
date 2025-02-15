@@ -1,5 +1,5 @@
 import streamlit as st
-from page_parts.trap_set import trap_set, trap_stasus_change
+from page_parts.trap_set import trap_set, trap_stasus_change, trap_edit
 from page_parts.trap_map import call_trap_date
 
 st.set_page_config(page_title="わな設置", layout="wide", page_icon="🐗")
@@ -26,6 +26,8 @@ def main():
         trap_set()
     if st.session_state.trap_page == "status_change":
         trap_stasus_change()
+    if st.session_state.trap_page == "trap_edit":
+        trap_edit()
 
 
 if __name__ == "__main__":

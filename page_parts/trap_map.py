@@ -61,7 +61,7 @@ def call_trap_date():
     return res
 
 
-def trap_map(width=400, height=300, mode="稼働中"):
+def trap_map(width=400, height=300, mode="稼働中", multi_select="multi-object"):
     trap_data = st.session_state.trap_data
     # trap_data = sample_trap_data()
 
@@ -115,14 +115,19 @@ def trap_map(width=400, height=300, mode="稼働中"):
     st.caption("🔵稼働中  🟡停止中  🔴撤去済み")
     event = st.pydeck_chart(
         chart,
-        selection_mode="multi-object",
+        selection_mode=multi_select,  # single-objectにするときは,
         on_select="rerun",
         width=width,
         height=height,
     )
-    st.session_state.selected_objects = event.selection["objects"]
-    print("st.session_state.selected_objects==>")
-    print(st.session_state.selected_objects)
+    if event.selection["objects"] == {}:
+        st.session_state.selected_objects = {"map": []}
+    else:
+        st.session_state.selected_objects = event.selection["objects"]
+    # print("event.selection==>")
+    # print(event.selection)
+    # print("st.session_state.selected_objects==>")
+    # print(st.session_state.selected_objects)
     if st.session_state.selected_objects:
         for p in st.session_state.selected_objects["map"]:
             st.write(p["trap_name"])

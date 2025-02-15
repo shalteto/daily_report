@@ -3,7 +3,7 @@ import pandas as pd
 from azure_.cosmosdb import upsert_to_container
 from tools.file_upload import file_upload
 from tools.trap_id import count_trap
-from page_parts.trap_map import trap_map, call_trap_date
+from page_parts.trap_map import trap_map
 
 
 database_name = "sat-db"
@@ -101,7 +101,7 @@ def trap_stasus_change():
     st.title("罠状況変更🦌")
 
     trap_map_mode = st.selectbox(
-        "表示する罠", ["すべて", "稼働中", "停止中", "撤去済み"], index=1
+        "表示する罠", ["すべて", "稼働中", "停止中", "撤去済み"], index=0
     )
     trap_map(mode=trap_map_mode)
 
@@ -137,3 +137,49 @@ def trap_stasus_change():
         st.success("罠の状況を変更しました")
         if st.button("罠マップの再読み込み"):
             st.rerun()
+
+
+def trap_edit():
+    st.title("罠の名称等を変更🦌")
+
+    trap_map_mode = st.selectbox(
+        "表示する罠", ["すべて", "稼働中", "停止中", "撤去済み"], index=0
+    )
+    trap_map(mode=trap_map_mode, multi_select="single-object")
+    if st.session_state.selected_objects != {"map": []}:
+        # st.write(st.session_state.selected_objects["map"])
+        selected_trap = st.session_state.selected_objects["map"][0]
+        trap_name = st.text_input(
+            "罠の通称（地図に表示する名称）", value=selected_trap["trap_name"]
+        )
+        trap_type = st.selectbox(
+            "罠種類",
+            ["くくり", "箱", "ネット式囲い"],
+            index=["くくり", "箱", "ネット式囲い"].index(selected_trap["trap_type"]),
+        )
+        number = st.number_input(
+            "設置数(同じスポット中の個数)",
+            min_value=1,
+            max_value=10,
+            value=selected_trap["number"],
+        )
+
+        if st.button("更新"):
+            selected_trap["trap_name"] = trap_name
+            selected_trap["trap_type"] = trap_type
+            selected_trap["number"] = number
+
+            try:
+                upsert_to_container(database_name, container_name, data=selected_trap)
+                st.success("更新完了")
+
+                for trap in st.session_state.trap_data:
+                    if trap["id"] == selected_trap["id"]:
+                        trap["trap_name"] = trap_name
+                        trap["trap_type"] = trap_type
+                        trap["number"] = number
+                        break
+            except Exception as e:
+                st.error(f"CosmosDB登録エラー: {e}")
+    else:
+        st.info("罠を１つ選択してください")
