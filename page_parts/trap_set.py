@@ -1,11 +1,12 @@
 import streamlit as st
 import pandas as pd
+from datetime import datetime, timedelta
 from azure_.cosmosdb import upsert_to_container
 from tools.file_upload import file_upload
 from tools.trap_id import count_trap
 from page_parts.trap_map import trap_map
 from tools.gps import get_gps_coordinates
-
+from page_parts.upload_report import submit_data
 
 database_name = "sat-db"
 container_name = "traps"
@@ -64,6 +65,19 @@ def trap_set():
             except Exception as e:
                 st.error(f"CosmosDB登録エラー: {e}")
                 return
+            now = datetime.now() + timedelta(hours=9)
+            start_time = now - timedelta(minutes=int(60))
+            end_time = now
+            data = {
+                "users": users,
+                "task_type": task_type,
+                "task_date": task_date.strftime("%Y-%m-%d"),
+                "start_time": start_time.strftime("%H:%M"),
+                "end_time": end_time.strftime("%H:%M"),
+                "trap": trap_id,
+                "file_names": file_names,
+            }
+            submit_data(data)
             st.success("送信完了")
             st.session_state.trap_data.append(
                 {
