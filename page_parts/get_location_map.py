@@ -23,7 +23,7 @@ def location_map(width=400, height=300):
     # 緯度と経度を10mずつ移動させるボタン
     tani = int(st.text_input("移動距離", value="50"))
     lamda = tani / 100000
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns([2, 1])
     with col1:
         if st.button(f"北 {tani}m"):
             lat += lamda
