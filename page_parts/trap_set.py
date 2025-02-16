@@ -119,7 +119,13 @@ def change_trap_status(map_data, status):
     except Exception as e:
         st.error(f"CosmosDB登録エラー: {e}")
         return
-    st.session_state.trap_data = updated_data
+
+    for updated_record in updated_data:
+        for i, trap in enumerate(st.session_state.trap_data):
+            if trap["id"] == updated_record["id"]:
+                st.session_state.trap_data[i] = updated_record
+                break
+
     return True
 
 
@@ -130,16 +136,6 @@ def trap_stasus_change():
         "表示する罠", ["すべて", "稼働中", "停止中", "撤去済み"], index=0
     )
     trap_map(mode=trap_map_mode)
-
-    # オブジェクト部分を取得
-    print("st.session_state.selected_objects==>")
-    print(st.session_state.selected_objects)
-
-    # 選択中の罠をデータフレームで表示するとき
-    # if "map" in st.session_state.selected_objects:
-    #     objects = st.session_state.selected_objects["map"]
-    #     df = pd.DataFrame(objects)
-    #     st.dataframe(df)
 
     col1, col2, col3 = st.columns(3)
     success = False
@@ -173,7 +169,6 @@ def trap_edit():
     )
     trap_map(mode=trap_map_mode, multi_select="single-object")
     if st.session_state.selected_objects != {"map": []}:
-        # st.write(st.session_state.selected_objects["map"])
         selected_trap = st.session_state.selected_objects["map"][0]
         trap_name = st.text_input(
             "罠の通称（地図に表示する名称）", value=selected_trap["trap_name"]

@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 from page_parts.input_users import load_users
 from page_parts.trap_map import call_trap_date
 
@@ -19,3 +20,5 @@ def init():
         st.session_state.trap_page = "None"
     if "trap_data" not in st.session_state:
         st.session_state.trap_data = ""
+    if "daily_report_result_df" not in st.session_state:
+        st.session_state.daily_report_result_df = pd.DataFrame()

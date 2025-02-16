@@ -2,6 +2,7 @@ import streamlit as st
 from azure_.cosmosdb import upsert_to_container
 from tools.file_upload import file_upload
 from page_parts.trap_map import trap_map
+from tools.gps import get_location
 from datetime import datetime, timedelta
 
 
@@ -12,9 +13,11 @@ def common_form_elements():
         "写真をアップロード", accept_multiple_files=True, type=["jpg", "png"]
     )
     now = datetime.now() + timedelta(hours=9)
-    st.write(now)
-    minuit = st.text_input("作業時間を分数で入力", 60)
-    start_time = now - timedelta(minutes=int(minuit))
+    # st.write(now)
+    hour = st.number_input(
+        "作業時間を入力(1時間単位で切上げ)", min_value=1, max_value=10, value=1
+    )
+    start_time = now - timedelta(hours=int(hour))
     end_time = now
     return users, task_date, uploaded_files, start_time, end_time
 
@@ -58,7 +61,13 @@ def mimawari_form(task_type):
                 "start_time": start_time.strftime("%H:%M"),
                 "end_time": end_time.strftime("%H:%M"),
                 "trap": trap,
+                "trap_type": "-",
+                "sex": "-",
+                "size": 0,
+                "weight": 0,
+                "disposal": "-",
                 "file_names": file_names,
+                "comment": "-",
             }
             submit_data(data)
         else:
@@ -90,13 +99,14 @@ def trap_hokaku_form(task_type):
                 "task_date": task_date.strftime("%Y-%m-%d"),
                 "start_time": start_time.strftime("%H:%M"),
                 "end_time": end_time.strftime("%H:%M"),
+                "trap": trap,
+                "trap_type": trap_type,
                 "sex": sex,
                 "size": size,
                 "weight": weight,
                 "disposal": disposal,
-                "trap": trap,
-                "trap_type": trap_type,
                 "file_names": file_names,
+                "comment": "-",
             }
             submit_data(data)
         else:
@@ -121,11 +131,14 @@ def gun_hokaku_form(task_type):
                 "task_date": task_date.strftime("%Y-%m-%d"),
                 "start_time": start_time.strftime("%H:%M"),
                 "end_time": end_time.strftime("%H:%M"),
+                "trap": "-",
+                "trap_type": "-",
                 "sex": sex,
                 "size": size,
                 "weight": weight,
                 "disposal": disposal,
                 "file_names": file_names,
+                "comment": "-",
             }
             submit_data(data)
         else:
@@ -152,6 +165,12 @@ def research_form(task_type):
                 "task_date": task_date.strftime("%Y-%m-%d"),
                 "start_time": start_time.strftime("%H:%M"),
                 "end_time": end_time.strftime("%H:%M"),
+                "trap": "-",
+                "trap_type": "-",
+                "sex": "-",
+                "size": 0,
+                "weight": 0,
+                "disposal": "-",
                 "file_names": file_names,
                 "comment": comment,
             }
@@ -178,6 +197,12 @@ def other_form(task_type):
                 "task_date": task_date.strftime("%Y-%m-%d"),
                 "start_time": start_time.strftime("%H:%M"),
                 "end_time": end_time.strftime("%H:%M"),
+                "trap": "-",
+                "trap_type": "-",
+                "sex": "-",
+                "size": 0,
+                "weight": 0,
+                "disposal": "-",
                 "file_names": file_names,
                 "comment": comment,
             }
@@ -193,33 +218,36 @@ def other_form(task_type):
 
 def upload_report():
     st.title("作業報告🐗")
+    st.write(get_location())
     task_type = st.selectbox(
         "作業種類を選択", ["見回り", "罠捕獲", "銃捕獲", "調査", "他"]
     )
     if task_type == "見回り":
+        st.session_state.users_filtered_by_type = st.session_state.users.query(
+            "trap == True"
+        )["user_name"].tolist()
         mimawari_form(task_type)
-        st.session_state.users_filtered_by_type = st.session_state.users.query(
-            "trap == True"
-        )["user_name"].tolist()
     elif task_type == "罠捕獲":
-        trap_hokaku_form(task_type)
         st.session_state.users_filtered_by_type = st.session_state.users.query(
             "trap == True"
         )["user_name"].tolist()
+        trap_hokaku_form(task_type)
     elif task_type == "銃捕獲":
-        gun_hokaku_form(task_type)
         st.session_state.users_filtered_by_type = st.session_state.users.query(
             "gun == True"
         )["user_name"].tolist()
+        print("st.session_state.users_filtered_by_type==>")
+        print(st.session_state.users_filtered_by_type)
+        gun_hokaku_form(task_type)
     elif task_type == "調査":
+        st.session_state.users_filtered_by_type = st.session_state.users.query(
+            "user_name == user_name"
+        )["user_name"].tolist()
         research_form(task_type)
-        st.session_state.users_filtered_by_type = st.session_state.users.query(
-            "user_name == user_name"
-        )["user_name"].tolist()
     elif task_type == "他":
-        other_form(task_type)
         st.session_state.users_filtered_by_type = st.session_state.users.query(
             "user_name == user_name"
         )["user_name"].tolist()
+        other_form(task_type)
     else:
         st.write("作業を選択してください")

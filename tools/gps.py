@@ -3,6 +3,29 @@ import piexif
 import io
 import requests
 
+import streamlit as st
+from streamlit_javascript import st_javascript
+
+
+def get_location():
+    # JavaScript で位置情報を取得
+    location = st_javascript(
+        """
+        navigator.geolocation.getCurrentPosition(
+            (position) => position.coords,
+            (error) => console.log(error)
+        );
+    """
+    )
+
+    # 位置情報を表示
+    if location:
+        print(location)
+        return location
+    else:
+        st.warning("位置情報を取得できませんでした。")
+        return None
+
 
 def get_gps_coordinates(file_data):
     img = Image.open(io.BytesIO(file_data))
