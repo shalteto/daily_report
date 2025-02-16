@@ -3,69 +3,74 @@ import piexif
 import io
 import requests
 import streamlit.components.v1 as components
-from streamlit_javascript import st_javascript
+import streamlit as st
+
+import streamlit as st
+import streamlit.components.v1 as components
+import json
 
 
 def get_location():
+    # JavaScript で位置情報を取得し、window.parent.postMessage で Streamlit に送る
     html_code = """
     <script>
-    navigator.geolocation.getCurrentPosition(
-        function(position) {
-            const latitude = position.coords.latitude;
-            const longitude = position.coords.longitude;
-            const accuracy = position.coords.accuracy;
-            document.getElementById("location").innerText = 
-                `緯度: ${latitude}, 経度: ${longitude} (精度: ${accuracy}m)`;
-
-            // Streamlit に値を送信
-            const streamlitData = {"latitude": latitude, "longitude": longitude};
-            window.parent.postMessage(streamlitData, "*");
-        },
-        function(error) {
-            document.getElementById("location").innerText = "位置情報を取得できませんでした。";
+        function sendLocation() {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const coords = {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude
+                    };
+                    window.parent.postMessage(coords, "*");
+                },
+                (error) => {
+                    window.parent.postMessage({ error: error.message }, "*");
+                }
+            );
         }
-    );
-    </script>
-    <div id="location">位置情報を取得中...</div>
-    """
-    location_data = components.html(html_code, height=50)
-    print("location_data==>")
-    print(components.html(html_code, height=50))
-    return location_data
 
+        // ページが読み込まれたら位置情報取得を試みる
+        window.onload = sendLocation;
 
-def get_location_js():
-    location = st_javascript(
-        """
-        async function getLocation() {
-            return new Promise((resolve, reject) => {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => resolve(position.coords),
-                    (error) => reject(error)
-                );
-            });
-        }
-        getLocation().then(coords => {
-            return coords;
-        }).catch(error => {
-            console.error(error);
-            return null;
+        // Streamlit 側で postMessage をリッスン
+        window.addEventListener("message", (event) => {
+            if (typeof event.data === "object" && event.data !== null) {
+                const jsonData = JSON.stringify(event.data);
+                const streamlitInput = document.createElement("textarea");
+                streamlitInput.style.display = "none";
+                streamlitInput.value = jsonData;
+                streamlitInput.name = "location";
+                document.body.appendChild(streamlitInput);
+                streamlitInput.dispatchEvent(new Event("input", { bubbles: true }));
+            }
         });
-        """
-    )
-    print("location==>")
-    print(location)
-    return location
+    </script>
+    """
 
+    # `st.session_state["location"]` が未設定ならデフォルト値を設定
+    if "location" not in st.session_state:
+        st.session_state["location"] = None
 
-# location = DeltaGenerator(
-#     _provided_cursor=LockedCursor(
-#         _index=1,
-#         _parent_path=(),
-#         _props={"delta_type": "iframe", "add_rows_metadata": None},
-#     ),
-#     _parent=DeltaGenerator(),
-# )
+    # Streamlit に HTML を埋め込んで JavaScript を実行
+    print("components.html(html_code, height=30)")
+    components.html(html_code, height=30)
+    print(components.html(html_code, height=30))
+
+    # 位置情報が取得されていれば返す
+    location_data = st.session_state.get("location")
+
+    if location_data:
+        try:
+            print("load開始")
+            coords = json.loads(location_data)
+            print("load")
+            if "error" in coords:
+                return None, coords["error"]
+            return coords["latitude"], coords["longitude"]
+        except json.JSONDecodeError:
+            return None, "データ解析エラー"
+
+    return None, "位置情報を取得中..."
 
 
 def get_gps_coordinates(file_data):
