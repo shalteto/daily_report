@@ -218,14 +218,6 @@ def other_form(task_type):
 
 def upload_report():
     st.title("作業報告🐗")
-
-    latitude, longitude_or_error = get_location()
-
-    if latitude is not None:
-        st.success(f"✅ 緯度: {latitude}, 経度: {longitude_or_error}")
-    else:
-        st.warning(f"⏳ {longitude_or_error}")
-
     task_type = st.selectbox(
         "作業種類を選択", ["見回り", "罠捕獲", "銃捕獲", "調査", "他"]
     )
