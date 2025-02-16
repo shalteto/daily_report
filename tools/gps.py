@@ -3,6 +3,7 @@ import piexif
 import io
 import requests
 import streamlit.components.v1 as components
+from streamlit_javascript import st_javascript
 
 
 def get_location():
@@ -28,7 +29,43 @@ def get_location():
     <div id="location">位置情報を取得中...</div>
     """
     location_data = components.html(html_code, height=50)
+    print("location_data==>")
+    print(components.html(html_code, height=50))
     return location_data
+
+
+def get_location_js():
+    location = st_javascript(
+        """
+        async function getLocation() {
+            return new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => resolve(position.coords),
+                    (error) => reject(error)
+                );
+            });
+        }
+        getLocation().then(coords => {
+            return coords;
+        }).catch(error => {
+            console.error(error);
+            return null;
+        });
+        """
+    )
+    print("location==>")
+    print(location)
+    return location
+
+
+# location = DeltaGenerator(
+#     _provided_cursor=LockedCursor(
+#         _index=1,
+#         _parent_path=(),
+#         _props={"delta_type": "iframe", "add_rows_metadata": None},
+#     ),
+#     _parent=DeltaGenerator(),
+# )
 
 
 def get_gps_coordinates(file_data):

@@ -2,7 +2,7 @@ import streamlit as st
 from azure_.cosmosdb import upsert_to_container
 from tools.file_upload import file_upload
 from page_parts.trap_map import trap_map
-from tools.gps import get_location
+from tools.gps import get_location, get_location_js
 from datetime import datetime, timedelta
 
 
@@ -218,7 +218,7 @@ def other_form(task_type):
 
 def upload_report():
     st.title("作業報告🐗")
-    st.write(get_location())
+    st.write(get_location_js())
     task_type = st.selectbox(
         "作業種類を選択", ["見回り", "罠捕獲", "銃捕獲", "調査", "他"]
     )
