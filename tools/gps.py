@@ -2,29 +2,33 @@ from PIL import Image
 import piexif
 import io
 import requests
-
-import streamlit as st
-from streamlit_javascript import st_javascript
+import streamlit.components.v1 as components
 
 
 def get_location():
-    # JavaScript で位置情報を取得
-    location = st_javascript(
-        """
-        navigator.geolocation.getCurrentPosition(
-            (position) => position.coords,
-            (error) => console.log(error)
-        );
-    """
-    )
+    html_code = """
+    <script>
+    navigator.geolocation.getCurrentPosition(
+        function(position) {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+            const accuracy = position.coords.accuracy;
+            document.getElementById("location").innerText = 
+                `緯度: ${latitude}, 経度: ${longitude} (精度: ${accuracy}m)`;
 
-    # 位置情報を表示
-    if location:
-        print(location)
-        return location
-    else:
-        st.warning("位置情報を取得できませんでした。")
-        return None
+            // Streamlit に値を送信
+            const streamlitData = {"latitude": latitude, "longitude": longitude};
+            window.parent.postMessage(streamlitData, "*");
+        },
+        function(error) {
+            document.getElementById("location").innerText = "位置情報を取得できませんでした。";
+        }
+    );
+    </script>
+    <div id="location">位置情報を取得中...</div>
+    """
+    location_data = components.html(html_code, height=50)
+    return location_data
 
 
 def get_gps_coordinates(file_data):
